@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="tiny" height="800" version="1.2" width="800">
+  <defs/>
+  <rect fill="rgb(20,20,20)" height="800" width="800" x="0" y="0"/>
+  <line stroke="white" stroke-linecap="round" stroke-width="4" x1="226.7949" x2="342.265" y1="500.0" y2="500.0"/>
+  <line stroke="white" stroke-linecap="round" stroke-width="4" x1="457.735" x2="573.2051" y1="500.0" y2="500.0"/>
+  <line stroke="white" stroke-linecap="round" stroke-width="4" x1="573.2051" x2="515.4701" y1="500.0" y2="400.0"/>
+  <line stroke="white" stroke-linecap="round" stroke-width="4" x1="457.735" x2="400.0" y1="300.0" y2="200.0"/>
+  <line stroke="white" stroke-linecap="round" stroke-width="4" x1="400.0" x2="342.265" y1="200.0" y2="300.0"/>
+  <line stroke="white" stroke-linecap="round" stroke-width="4" x1="284.5299" x2="226.7949" y1="400.0" y2="500.0"/>
+</svg>
