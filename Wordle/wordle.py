@@ -4,7 +4,7 @@ not_included_letters = ""
 letters_pos_not_known = ""
 letters_pos_known = {
     "letters":"",
-    "position":"" #REMEMBER TO CONVERT THIS TO AN INT WHEN USING
+    "position":"" #REMEMBER TO CONVERT THIS TO AN INT WHEN USING. INDEXING STARTS AT ZERO.
 }
 
 with open ("wordle/words.txt","r") as file:
