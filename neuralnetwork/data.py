@@ -3,14 +3,15 @@ from matplotlib.animation import FuncAnimation
 
 
 def classify(point, line):
-    c = 0
-    above_line = 0
-    line_gradient = line[1][1] / line[1][0]
-    line_y = line_gradient * point[0] + c
-    point_gradient = point[1] / point[0]
+    dx = line[1][0] - line[0][0]
+    dy = line[1][1] - line[0][1]
+    gradient = dy / dx
+    c = line[0][1] - gradient * line[0][0]
+    line_y = gradient * point[0] + c
     if point[1] > line_y:
-        above_line = 1
-    return above_line
+        return 1
+    else:
+        return 0
 
 def label_points(points, line):
     labelled = [] # Create a numpy array which will contain the coordinates of labelled points, and whether they are on top of the line or not
@@ -24,11 +25,18 @@ def create_points(amount=100):
     return points
 
 def create_line():
-    fixed = random.choice([-100,100])
-    line = np.array([(0,0), (fixed, random.random()* 200 - 100)]) # Start and end coordinates of the line. Line is always at x = 100 or y = 100, the other coordinate is 20 + a random number between 0 and 80 (20 is a lower bound buffer)
-    if random.randint(0, 100) % 2:
-        line[1][::-1] # If y has been chosen, flipping the array's 1st index
-    return line
+    fixed_start = random.choice([-100,100])
+    fixed_end = random.choice([-100, 100])
+    line = np.array([(fixed_start, random.random() * 200 - 100), (fixed_end, random.random()* 200 - 100)]) # Start and end coordinates of the line. Line is always at x = 100 or y = 100, the other coordinate is 20 + a random number between 0 and 80 (20 is a lower bound buffer)
+    for i in range(2):
+        if random.randint(0, 100) % 2:
+            line[i][::-1] # If y has been chosen, flipping the array's 1st index
+    if line[0][0] == line[1][0] or line [0][1] == line[1][1]:
+        print("Failed:", line)
+        return create_line()
+    else:
+        print("Succeeded:", line)
+        return line
 
 def draw(line):
     plt.style.use("ggplot") #Changing colour of points and line
@@ -40,9 +48,9 @@ def draw(line):
             break
         points_array = np.array(points)
         if points_array.shape[1] == 3: # If each tuple in the array has 3 values, it will be the training data. If not, it will be unlabeled and therefore testing data.
-            colours = [("blue" if label == 1 else "green") for label in points_array[:, 2]]
+            colours = [((0, 0, 1, confidence) if confidence > 0.5 else (0, 1, 0, (1 - confidence))) for confidence in points_array[:, 2]]
         else:
-            colours = ["red"] * len(points_array)
+            colours = [(1, 0, 0, confidence) for confidence in points_array[:, 2]]
         gathered_points.append(points_array)
         all_colours.append(colours)
 
@@ -50,8 +58,8 @@ def draw(line):
 
 
     figure, axes = plt.subplots(figsize=(5,5))
-    axes.set_xlim((-100, 100))
-    axes.set_ylim((-100, 100))
+    axes.set_xlim((-105, 105))
+    axes.set_ylim((-105, 105))
     sct = axes.scatter([], [])
 
     def step(index):
@@ -64,7 +72,6 @@ def draw(line):
 
     if line is not None:
         plt.plot(line[:,0],line[:,1]) # Plotting the line
-        plt.plot(line[:,0] * -1, line[:,1] * -1, ls=':') # Plotting the dotted line  which continues the line
 
     plt.show() # Displaying the graph
 
