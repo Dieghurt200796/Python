@@ -67,7 +67,7 @@ def draw(line):
         sct.set_color(all_colours[index])
         axes.set_title(index)
         return sct
-
+    
     animation = FuncAnimation(figure, step, frames=len(gathered_points), interval=50, repeat=False, init_func=lambda *args, **kwargs : None)
 
     if line is not None:

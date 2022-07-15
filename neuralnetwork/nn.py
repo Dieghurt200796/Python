@@ -4,6 +4,8 @@ from collections import Counter
 class NeuralNetwork:
     def __init__(self, activation):
         self.weights = [random.random() * 2 - 1, random.random() * 2 - 1]
+        self.input_weights = [random.random() * 2 - 1, random.random() * 2 - 1]
+        self.hidden_weights = [random.random() * 2 - 1, random.random() * 2 - 1]
         self.activation = activation
 
     @staticmethod
@@ -16,6 +18,10 @@ class NeuralNetwork:
     @staticmethod
     def sigmoid_activation(value):
         return 1 / (1 + math.exp(-value))
+
+    @staticmethod
+    def sigmoid_derivative(value):
+        return math.exp(value) / (1 + math.exp(value)) ** 2
     
     @staticmethod
     def scale_point(point):
@@ -27,12 +33,23 @@ class NeuralNetwork:
         total = sum(values)
         return [value / total for value in values]
 
-    def feed_forward(self, point):
-        scaled = NeuralNetwork.scale_point(point)
-        output = scaled[0] * self.weights[0] + scaled[1] * self.weights[1]
-        activation = self.activation(output)
+    def feed_forward(self, inputs):
+        iw, hw = self.input_weights, self.hidden_weights
+        scaled = NeuralNetwork.scale_point(inputs)
 
-        return activation
+        hidden = [
+        scaled[0] * iw[0] + scaled[1] + iw[0],
+        scaled[0] * iw[1] + scaled[1] * iw[1]
+        ]
+        # print(scaled)
+        hidden_activations = [self.activation(hidden[i]) for i in range(len(hidden))]
+
+        output = hidden_activations[0] * hw[0] + hidden_activations[1] * hw[1]
+        output_activation = self.activation(output)
+
+        # print(f"{inputs = }\n{scaled = }\n{hidden = }\n{hidden_activations = }\n{output = }\n{output_activation = }")
+
+        return output_activation
 
     def predict(self, points):
         guesses = []
@@ -41,9 +58,30 @@ class NeuralNetwork:
             guesses.append([*point[:2], activation])
         return guesses
 
+    def backpropagate(self, point, label, LEARNING_RATE=0.05):
+        guess = self.feed_forward(point)
+        error = label - guess
+        error_derivative = NeuralNetwork.sigmoid_derivative(error)
+        scaled = NeuralNetwork.scale_point(point)
+        deltas = [[0, 0], [0, 0]]
+        deltas[0][0] += point[0] * error_derivative
+        deltas[0][1] += point[1] * error_derivative
+        norm_weight = NeuralNetwork.normalise(self.input_weights)
+
+        deltas[1][0] = deltas[0][0] * norm_weight[0] + deltas[0][1] * norm_weight[0] 
+        deltas[1][1] = deltas[0][0] * norm_weight[1] + deltas[0][1] * norm_weight[1] 
+
+        self.input_weights[0] += deltas[1][0] * LEARNING_RATE
+        self.input_weights[1] += deltas[1][1] * LEARNING_RATE
+        self.input_weights[0] += deltas[0][0] * LEARNING_RATE
+        self.input_weights[1] += deltas[0][1] * LEARNING_RATE
+
+
     def train(self, training_data, LEARNING_RATE=0.05):
         correct = True
         for point, guess in zip(training_data, self.guesses[-1]):
+            self.backpropagate(point[:2], point[2])
+
             error = point[2] - guess[2]
             scaled = NeuralNetwork.scale_point(point)
             self.weights[0] += scaled[0] * error * LEARNING_RATE
