@@ -6,6 +6,9 @@ class NeuralNetwork:
         self.weights = [random.random() * 2 - 1, random.random() * 2 - 1]
         self.input_weights = [random.random() * 2 - 1, random.random() * 2 - 1]
         self.hidden_weights = [random.random() * 2 - 1, random.random() * 2 - 1]
+
+        self.hidden_biases = [0, 0]
+
         self.activation = activation
 
     @staticmethod
@@ -13,11 +16,11 @@ class NeuralNetwork:
         if value > 0:
             return 1
         else:
-            return 0 
+            return -1
 
     @staticmethod
     def sigmoid_activation(value):
-        return 1 / (1 + math.exp(-value))
+        return 2 / (1 + math.exp(-value)) - 1 # Sigmoid function, only multiplied by 2 and subtracted 1, as values too close to 0 were giving errors.
 
     @staticmethod
     def sigmoid_derivative(value):
@@ -30,25 +33,25 @@ class NeuralNetwork:
 
     @staticmethod
     def normalise(values):
-        total = sum(values)
-        return [value / total for value in values]
+        offset = abs(min(values))
+        total = sum(values) + offset * len(values)
+        return [(value + offset) / total for value in values]
 
     def feed_forward(self, inputs):
         iw, hw = self.input_weights, self.hidden_weights
         scaled = NeuralNetwork.scale_point(inputs)
 
-        hidden = [
-        scaled[0] * iw[0] + scaled[1] + iw[0],
-        scaled[0] * iw[1] + scaled[1] * iw[1]
+        self.hidden = [
+        scaled[0] * iw[0] + scaled[1] * iw[0] + self.hidden_biases[0],
+        scaled[0] * iw[1] + scaled[1] * iw[1] + self.hidden_biases[1]
         ]
-        # print(scaled)
-        hidden_activations = [self.activation(hidden[i]) for i in range(len(hidden))]
+        
+        hidden_activations = [self.activation(self.hidden[i]) for i in range(len(self.hidden))]
 
         output = hidden_activations[0] * hw[0] + hidden_activations[1] * hw[1]
         output_activation = self.activation(output)
 
-        # print(f"{inputs = }\n{scaled = }\n{hidden = }\n{hidden_activations = }\n{output = }\n{output_activation = }")
-
+        
         return output_activation
 
     def predict(self, points):
@@ -58,49 +61,75 @@ class NeuralNetwork:
             guesses.append([*point[:2], activation])
         return guesses
 
-    def backpropagate(self, point, label, LEARNING_RATE=0.05):
+    def backpropagate(self, point, label, learning_rate=0.05):
         guess = self.feed_forward(point)
         error = label - guess
-        error_derivative = NeuralNetwork.sigmoid_derivative(error)
+        gradient = NeuralNetwork.sigmoid_derivative(guess)
+        error_derivative = error * gradient
+
         scaled = NeuralNetwork.scale_point(point)
         deltas = [[0, 0], [0, 0]]
-        deltas[0][0] += point[0] * error_derivative
-        deltas[0][1] += point[1] * error_derivative
-        norm_weight = NeuralNetwork.normalise(self.input_weights)
 
-        deltas[1][0] = deltas[0][0] * norm_weight[0] + deltas[0][1] * norm_weight[0] 
-        deltas[1][1] = deltas[0][0] * norm_weight[1] + deltas[0][1] * norm_weight[1] 
+        hw_normalised = NeuralNetwork.normalise(self.input_weights)
 
-        self.input_weights[0] += deltas[1][0] * LEARNING_RATE
-        self.input_weights[1] += deltas[1][1] * LEARNING_RATE
-        self.input_weights[0] += deltas[0][0] * LEARNING_RATE
-        self.input_weights[1] += deltas[0][1] * LEARNING_RATE
+        deltas[0][0] += hw_normalised[0] * error_derivative
+        deltas[0][1] += hw_normalised[1] * error_derivative
+        iw_normalised = NeuralNetwork.normalise(self.input_weights)
+        hidden_normalised = NeuralNetwork.normalise(self.hidden)
+
+        gradients = [
+            NeuralNetwork.sigmoid_derivative(hidden_normalised[0]),
+            NeuralNetwork.sigmoid_derivative(hidden_normalised[1])
+        ]
 
 
-    def train(self, training_data, LEARNING_RATE=0.05):
+        deltas[1][0] = gradients[0] * iw_normalised[0] * deltas[0][0] + gradients[1] * iw_normalised[0] 
+        deltas[1][1] = gradients[0] * iw_normalised[1] * deltas[0][1] + gradients[1] * iw_normalised[1] 
+
+        self.input_weights[0] += deltas[1][0] * learning_rate * scaled[0]
+        self.input_weights[1] += deltas[1][1] * learning_rate * scaled[1]
+        self.hidden_weights[0] += deltas[0][0] * learning_rate * scaled[0]
+        self.hidden_weights[1] += deltas[0][1] * learning_rate * scaled[1]
+
+        self.hidden_biases[0] += deltas[0][0]
+        self.hidden_biases[1] += deltas[0][1]
+
+    def train(self, training_data, learning_rate=0.05, file=None):
         correct = True
         for point, guess in zip(training_data, self.guesses[-1]):
             self.backpropagate(point[:2], point[2])
 
             error = point[2] - guess[2]
             scaled = NeuralNetwork.scale_point(point)
-            self.weights[0] += scaled[0] * error * LEARNING_RATE
-            self.weights[1] += scaled[1] * error * LEARNING_RATE
+            self.weights[0] += scaled[0] * error * learning_rate
+            self.weights[1] += scaled[1] * error * learning_rate
             if guess[2] != point[2]:
                 correct = False
         if not correct:
-            new_guesses = self.predict(training_data)
-            self.guesses.append(new_guesses)
-            self.train(training_data)  
+            try:
+                new_guesses = self.predict(training_data)
+                self.guesses.append(new_guesses)
+                if file:
+                    file.write(str(self))
+                self.train(training_data, learning_rate = learning_rate, file = file)
+            except:
+                pass
         else:
             return
 
-    def begin_training(self, training_data, LEARNING_RATE=0.05):
+    def begin_training(self, training_data, learning_rate=0.05):
+        file = open("neuralnetwork/nndata.txt", "w")
         self.guesses = [self.predict(training_data)]
         try:
-            self.train(training_data)
+            self.train(training_data, learning_rate=learning_rate, file=file)
         except Exception as e:
             print("Exited with error:", e)
+        file.close()
+
+    def __str__(self):
+        return f""" 
+Weights: {self.input_weights}, {self.hidden_weights}
+Biases: {self.hidden_biases}"""
 
 
 if __name__ == "__main__":
@@ -110,8 +139,10 @@ if __name__ == "__main__":
     testing_data = data.create_points(1000)
 
     nn = NeuralNetwork(NeuralNetwork.sigmoid_activation)
+
+    nn.begin_training(training_data)
+
     guesses = nn.predict(training_data) 
     data.display(guesses, line=line)
 
-    nn.begin_training(training_data)
     data.display(*nn.guesses, line=line)

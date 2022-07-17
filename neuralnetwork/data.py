@@ -11,7 +11,7 @@ def classify(point, line):
     if point[1] > line_y:
         return 1
     else:
-        return 0
+        return -1
 
 def label_points(points, line):
     labelled = [] # Create a numpy array which will contain the coordinates of labelled points, and whether they are on top of the line or not
@@ -48,7 +48,7 @@ def draw(line):
             break
         points_array = np.array(points)
         if points_array.shape[1] == 3: # If each tuple in the array has 3 values, it will be the training data. If not, it will be unlabeled and therefore testing data.
-            colours = [((0, 0, 1, confidence) if confidence > 0.5 else (0, 1, 0, (1 - confidence))) for confidence in points_array[:, 2]]
+            colours = [((0, 0, 1, confidence) if confidence > 0 else (0, 1, 0, abs(confidence))) for confidence in points_array[:, 2]]
         else:
             colours = [(1, 0, 0, confidence) for confidence in points_array[:, 2]]
         gathered_points.append(points_array)
