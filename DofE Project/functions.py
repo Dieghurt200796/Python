@@ -1,4 +1,4 @@
-import random, time
+import random, time, copy
 class Board:
     def __init__(self):
         self.board_matrix = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
@@ -16,7 +16,7 @@ class Board:
             return "O"
 
     def turn_user_input(self):
-        """The user inputs their turn so that it can then be drawn"""
+        """The user inputs their choice so that it can then be drawn"""
         turn_finalised = False
         while not turn_finalised:
             (x,y) = tuple((input()).split(","))
@@ -39,14 +39,40 @@ class Board:
             # If number of turns is not even, it is O's turn, so draw circle
         self.number_of_turns += 1
     
-    def pick_pos_comp(self):
+    def pick_pos_comp_random(self):
         position = None
         time.sleep(random.randint(1,3))
         while position != 0:
             x = random.randint(0,2)
             y = random.randint(0,2)
             position = self.board_matrix[x][y]
-        return x,y	
+        return x,y
+    
+    def minimax(self, move):
+        temp_board_matrix = copy.deepcopy(self.board_matrix)
+
+    def pick_pos_comp_backtrack(self):
+        best_weight = -1_000_000
+        best_move = None
+        x, y = None
+        possible_moves = self.possible_moves()
+        
+        for move in possible_moves:
+            weight = self.minimax(move)
+            if weight > best_weight:
+                best_weight = weight
+                best_move = move
+        return best_move
+
+
+
+    def possible_moves(self):
+        moves = []
+        for x in range(len(self.board_matrix)):
+            for y in range(len(self.board_matrix[i])):
+                if self.board_matrix[x][y] == 0:
+                    moves.append(tuple(x, y))
+        return moves
 
     def show(self):
         """The board is drawn"""
@@ -137,10 +163,10 @@ class Board:
                 if (self.number_of_turns % 2) == 0:
                     # If number of turns is even, it is the turn of crosses. We will now check wheter or not the player picked to play as crosses.
                     if self.piece == 1: x,y = self.turn_user_input()
-                    else: x,y = self.pick_pos_comp()
+                    else: x,y = self.pick_pos_comp_random()
 
                 if (self.number_of_turns % 2) == 1:
                     # If number of turns is odd, it is the turn of circles. We will now check wheter or not the player picked to play as circles.
                     if self.piece == 2: x,y = self.turn_user_input()
-                    else: x,y = self.pick_pos_comp()
+                    else: x,y = self.pick_pos_comp_random()
                 self.set_cell(x,y)
