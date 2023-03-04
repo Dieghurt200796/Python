@@ -49,43 +49,78 @@ class Board:
             position = self.board_matrix[x][y]
         return x,y
     
-    def minimax(self, move, piece_comp):
-        temp_board_matrix = copy.deepcopy(self.board_matrix)
-        self.set_cell(move[0],move[1],temp_board_matrix)
-        possible_moves = self.possible_moves(temp_board_matrix)
-        if piece_comp == 0:
-            piece_comp = 2
+    @staticmethod
+    def minimax(board, remaining_moves, current_player):
+        # temp_board_matrix = copy.deepcopy(self.board_matrix)
+        # last_move = move # Records the last move made to be able to undo it in future
+        # self.set_cell(move[0],move[1],temp_board_matrix)
+        # possible_moves = self.possible_moves(temp_board_matrix)
+        # if piece_comp == 0:
+        #     piece_comp = 2
 
-        if len(possible_moves) == 0:
-            return 0
-        elif self.check_for_victory(temp_board_matrix) == 0:
-            self.minimax()
-        elif self.check_for_victory(temp_board_matrix) == piece_comp:
-            score += 1
-        elif self.check_for_victory(temp_board_matrix) != piece_comp:
-            score-=1
+        if current_player == 2: # Checking if current player is the computer
+            best_move = [-1, -1, -1_000_000]
+        else:
+            best_move = [-1, -1, 1_000_000]
 
+        if remaining_moves == 0:
+            return [-1, -1, 0]
+        elif Board.check_for_victory(board) == 1:
+            [-1, -1, -1]
+        elif Board.check_for_victory(board) == 2:
+            [-1, -1, 1]
 
-    def pick_pos_comp_backtrack(self):
-        best_weight = -1_000_000
-        best_move = None
-        x, y = None
-        possible_moves = self.possible_moves(self.board_matrix)
-        
-        for move in possible_moves:
-            weight = self.minimax(move, ((self.piece + 1) % 2))
-            if weight > best_weight:
-                best_weight = weight
-                best_move = move
+        for cell in Board.possible_moves(board):
+            x = cell[0]
+            y = cell[1]
+            board[x][y] = current_player
+
+            if current_player == 1:
+                new_player = 2
+            else:
+                new_player = 1
+                
+            score = Board.minimax(board, remaining_moves-1, new_player)
+
+            board[x][y] = 0
+            score[0] = x
+            score[1] = y
+            if current_player == 2:
+                if score[2] > best_move[2]:
+                    best_move = score
+            else:
+                if score[2] < best_move[2]:
+                    best_move = score
         return best_move
+        
+    def pick_pos_comp_backtrack(self):
+        # best_weight = -1_000_000
+        # best_move = None
+        # x, y = None
+        # possible_moves = Board.possible_moves(self.board_matrix)
+        
+        # for move in possible_moves:
+        #     weight = self.minimax(move, ((self.piece + 1) % 2))
+        #     if weight > best_weight:
+        #         best_weight = weight
+        #         best_move = move
+        # return best_move
+        
+        time.sleep(random.randint(1,2))
 
+        move = Board.minimax(self.board_matrix, 9-self.number_of_turns, 2)
+        x,y = move[0],move[1]
 
-    def possible_moves(self, board):
+        return x,y
+
+    @staticmethod
+    def possible_moves(board):
         moves = []
         for x in range(len(board)):
             for y in range(len(board[x])):
                 if board[x][y] == 0:
-                    moves.append(tuple(x, y))
+                    move = x,y
+                    moves.append(move)
         return moves
 
     def show(self):
@@ -101,7 +136,8 @@ class Board:
                 board_to_print += "\n"
         print(board_to_print)
 
-    def check_for_victory(self, board):
+    @staticmethod
+    def check_for_victory(board):
         """This function checks for all the forms of winning the game. If the output is 0, nobody has won yet. If it is 1, crosses have won, and if it is 2, circles."""
         game_won_by = 0
         for i in range(3):
@@ -126,6 +162,7 @@ class Board:
     def open_menu(self):
         self.mode = None
         self.piece = None
+        self.difficulty = None
         while not self.mode:
             try:
                 self.mode = int(input("Welcome to the game. Would you like to play 1.Against a friend or 2.Against the computer?\n"))
@@ -137,6 +174,14 @@ class Board:
                 print(e, "\nTry again.")
         
         if self.mode == 2:
+            while not self.difficulty:
+                try:
+                    self.difficulty = int(input("Would you like to play on 1.Easy or 2.Hard mode?\n"))
+                    if self.difficulty != 1 and self.difficulty != 2:
+                        print("Invalid index")
+                        self.difficulty = None
+                except Exception as e:
+                    print(e, "\nTry again")
             while not self.piece:
                 try:
                     self.piece = int(input("Would you like to play as 1.Crosses or 2.Circles?\n"))
@@ -151,7 +196,7 @@ class Board:
         if self.mode == 1:
             while True:
                 self.show()
-                victor = self.check_for_victory(self.board_matrix)
+                victor = Board.check_for_victory(self.board_matrix)
                 if self.number_of_turns == 9:
                     print("Draw")
                     break
@@ -165,7 +210,7 @@ class Board:
         elif self.mode == 2:
             while True:
                 self.show()
-                victor = self.check_for_victory(self.board_matrix)
+                victor = Board.check_for_victory(self.board_matrix)
                 if self.number_of_turns == 9:
                     print("Draw")
                     break
@@ -177,12 +222,14 @@ class Board:
                 if (self.number_of_turns % 2) == 0:
                     # If number of turns is even, it is the turn of crosses. We will now check wheter or not the player picked to play as crosses.
                     if self.piece == 1: x,y = self.turn_user_input()
-                    else: x,y = self.pick_pos_comp_random()
+                    elif self.difficulty == 1: x,y = self.pick_pos_comp_random()
+                    else: x,y = self.pick_pos_comp_backtrack()
 
                 if (self.number_of_turns % 2) == 1:
                     # If number of turns is odd, it is the turn of circles. We will now check wheter or not the player picked to play as circles.
                     if self.piece == 2: x,y = self.turn_user_input()
-                    else: x,y = self.pick_pos_comp_random()
+                    elif self.difficulty == 1: x,y = self.pick_pos_comp_random()
+                    else: x,y = self.pick_pos_comp_backtrack()
                 self.set_cell(x,y,board=self.board_matrix)
 
 class GUI:

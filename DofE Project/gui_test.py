@@ -18,7 +18,7 @@ class Window:
     
     def show_board(self):
         pygame.draw.line(self.window.set_mode((600,600)), (35,200,35), (200,550), (200,50))
-        pygame.draw.line(self.window.set_mode((600,600)), (35,200,35), (400,550), (400,50))
+        pygame.draw.line(self.window.set_mode((600,600)), (35,35,200), (400,550), (400,50))
 
 
 window = Window()
