@@ -1,4 +1,4 @@
-import random, time, copy, pygame
+import random, time, pygame
 
 class Board:
     def __init__(self):
@@ -16,11 +16,10 @@ class Board:
         else:
             return "O"
 
-    def turn_user_input(self):
+    def turn_user_input(self,x,y):
         """The user inputs their choice so that it can then be drawn"""
         turn_finalised = False
         while not turn_finalised:
-            (x,y) = tuple((input()).split(","))
             x,y = int(x),int(y)
             if self.board_matrix[x][y] == 0:
                 # If the cell is marked as empty, draw
@@ -51,13 +50,6 @@ class Board:
     
     @staticmethod
     def minimax(board, remaining_moves, current_player):
-        # temp_board_matrix = copy.deepcopy(self.board_matrix)
-        # last_move = move # Records the last move made to be able to undo it in future
-        # self.set_cell(move[0],move[1],temp_board_matrix)
-        # possible_moves = self.possible_moves(temp_board_matrix)
-        # if piece_comp == 0:
-        #     piece_comp = 2
-
         if current_player == 2: # Checking if current player is the computer
             best_move = [-1, -1, -1_000_000]
         else:
@@ -66,9 +58,9 @@ class Board:
         if remaining_moves == 0:
             return [-1, -1, 0]
         elif Board.check_for_victory(board) == 1:
-            [-1, -1, -1]
+            return [-1, -1, -1]
         elif Board.check_for_victory(board) == 2:
-            [-1, -1, 1]
+            return [-1, -1, 1]
 
         for cell in Board.possible_moves(board):
             x = cell[0]
@@ -94,18 +86,6 @@ class Board:
         return best_move
         
     def pick_pos_comp_backtrack(self):
-        # best_weight = -1_000_000
-        # best_move = None
-        # x, y = None
-        # possible_moves = Board.possible_moves(self.board_matrix)
-        
-        # for move in possible_moves:
-        #     weight = self.minimax(move, ((self.piece + 1) % 2))
-        #     if weight > best_weight:
-        #         best_weight = weight
-        #         best_move = move
-        # return best_move
-        
         time.sleep(random.randint(1,2))
 
         move = Board.minimax(self.board_matrix, 9-self.number_of_turns, 2)
@@ -232,7 +212,4 @@ class Board:
                     else: x,y = self.pick_pos_comp_backtrack()
                 self.set_cell(x,y,board=self.board_matrix)
 
-class GUI:
-    def __init__(self):
-        window = pygame.display.set_mode((600,600))
         
