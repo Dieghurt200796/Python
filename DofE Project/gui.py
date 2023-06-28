@@ -227,9 +227,9 @@ class GUI:
                                 35])
                 txt1 = self.fontoption.render('Ok', True, self.black)
 
-            if draw: self.scr.blit(txt0, (110, 100))
-            else: self.scr.blit(txt0, (75,100))
-            self.scr.blit(txt1, (135, 200))
+            if draw: self.scr.blit(txt0, (130, 100))
+            else: self.scr.blit(txt0, (100,100))
+            self.scr.blit(txt1, (140, 200))
             
 
             for event in pygame.event.get(): 
