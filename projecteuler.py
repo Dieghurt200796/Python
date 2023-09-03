@@ -138,7 +138,7 @@ def prime_finder_problem7(limit : int):
 
     return primes
 def output_problem7():
-    primes = prime_finder_problem4(10001)
+    primes = prime_finder_problem7(10001)
     last_prime = primes[-1]
 
     return last_prime
@@ -178,7 +178,60 @@ def output_problem9():
                     c=k+1
                     if a+b+c == 1000 and a**2 + b**2 == c**2:
                         return a*b*c
-print(output_problem9())
+# print(output_problem9())
+
+# Problem 10: TRY TO MAKE MORE EFFICIENT?
+def output_problem10():
+    primes_below = 2_000_000
+    primes = []
+    for i in range(primes_below):
+        prime = True
+        if i > 1:
+            for number in primes:
+                if i % number == 0:
+                    prime = False
+                    break
+            if prime: primes.append(i)
+    return sum(primes)
+# print(output_problem10())
+
+# Problem 11:
+def format_grid_problem11():
+    grid = []
+    print("Enter grid, manually separating rows or pasting grid with pre-separated rows")
+    for _ in range(20):
+        grid.append(input().split(sep=' '))
+    for i in range(20):
+        for j in range(20):
+            grid[i][j]=int(grid[i][j])
+    return grid
+def output_problem11():
+    grid = format_grid_problem11()
+    max_product = 0
+    # Find products in horizontal line
+    for i in range(len(grid)):
+        for j in range(len(grid[i])-3):
+            product = grid[i][j] * grid[i][j + 1] * grid[i][j + 2] * grid[i][j + 3]
+            if max_product < product: max_product = product
+    # Find products in vertical line
+    for i in range(len(grid)-3):
+        for j in range(len(grid[i])):
+            product = grid[i][j] * grid[i + 1][j] * grid[i + 2][j] * grid[i + 3][j]
+            if max_product < product: max_product = product
+    # Find products in diagonal (left to right)
+    for i in range(len(grid)-3):
+        for j in range(len(grid[i])-3):
+            product = grid[i][j] * grid[i + 1][j + 1] * grid[i + 2][j + 2] * grid[i + 3][j + 3]
+            if max_product < product: max_product = product
+    # Find products in diagonal (right to left)
+    for i in range(len(grid)-3):
+        for j in range(len(grid[i])-3):
+            product = grid[i][j + 3] * grid[i + 1][j + 2] * grid[i + 2][j + 1] * grid[i + 3][j]
+            if max_product < product: max_product = product
+
+    return max_product
+# print(output_problem11())
+
 
 #Problem 16
 def output_problem16():
